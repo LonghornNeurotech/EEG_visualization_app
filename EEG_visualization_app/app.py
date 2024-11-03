@@ -11,13 +11,6 @@ plt.switch_backend('Agg')
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
-# Dummy function placeholders for preprocessing techniques
-def bandpass_filter(data, low_freq, high_freq):
-    return data  
-
-def fft_transform(data):
-    return data 
-
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -76,6 +69,56 @@ def visualize():
         return render_template('visualize.html', plot_paths=plot_paths)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+
+def bandpass_filter(data, lowcut, highcut, fs, order=4):
+    pass
+
+def fft_transform():
+    pass
+
+@app.route('/apply_filter', methods=['POST'])
+def apply_filter():
+    data = request.json
+    filepath = data.get('filepath')
+    channel_index = data.get('channel')
+    filter_type = data.get('filter_type')
+
+    try:
+        eeg_data = np.load(os.path.join(app.config['UPLOAD_FOLDER'], filepath))
+        if channel_index < 0 or channel_index >= eeg_data.shape[0]:
+            return jsonify({'error': 'Channel index out of range'}), 400
+        
+        # Apply the selected filter
+        if filter_type == 'bandpass':
+            lowcut, highcut, fs = 0.5, 40, 256  # Example values for EEG
+            filtered_data = bandpass_filter(eeg_data[channel_index], lowcut, highcut, fs)
+            eeg_data[channel_index] = filtered_data[channel_index]  # Ensure it's the first element returned
+        elif filter_type == 'fft':
+            filtered_data = fft_transform(eeg_data[channel_index])
+            eeg_data[channel_index] = filtered_data
+        elif filter_type == 'average':
+            eeg_data[channel_index] = np.mean(eeg_data, axis=0)  # This averages across all channels
+
+        # Generate and save the updated plot
+        fig, ax = plt.subplots(figsize=(10, 3))
+        ax.plot(eeg_data[channel_index], label=f'Channel {channel_index + 1} ({filter_type.capitalize()})')
+        ax.set_title(f"EEG Data - Channel {channel_index + 1} ({filter_type.capitalize()})")
+        ax.set_xlabel("Time")
+        ax.set_ylabel("Amplitude")
+        ax.legend(loc="upper right")
+        
+        plot_filename = f'channel_{channel_index + 1}_{filter_type}_plot.png'
+        plot_filepath = os.path.join(app.config['UPLOAD_FOLDER'], plot_filename)
+        fig.savefig(plot_filepath)
+        plt.close(fig)
+
+        # Return the new plot URL
+        return jsonify({'new_plot_url': url_for('static', filename=f'uploads/{plot_filename}')})
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
