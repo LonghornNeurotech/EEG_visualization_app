@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EEG Visualization</title>
+</head>
+<body>
+    <h1>EEG Channel Visualizations</h1>
+    
+    {% for plot_url in plot_paths %}
+    <div style="margin-bottom: 30px;">
+        <img src="{{ plot_url }}" alt="EEG Data Plot for Channel {{ loop.index }}" width="800">
+        <div>
+            <label for="filter-{{ loop.index }}">Filter Options:</label>
+            <select id="filter-{{ loop.index }}">
+                <option value="none">Select Filter</option>
+                <option value="bandpass">Bandpass</option>
+                <option value="fft">FFT</option>
+                <option value="average">Averaging</option>
+                <!-- add more here -->
+            </select>
+        </div>
+    </div>
+    {% endfor %}
+
+</body>
+</html>
