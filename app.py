@@ -3,6 +3,7 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 from werkzeug.utils import secure_filename
+import scipy
 
 # Use Agg backend to avoid GUI issues on macOS
 plt.switch_backend('Agg')
@@ -71,8 +72,10 @@ def visualize():
         return jsonify({'error': str(e)}), 500
     
 
-def bandpass_filter(data, lowcut, highcut, fs, order=4):
-    pass
+def bandpass_filter(sig, order, crit_freq, sampling_freq):
+  b, a = scipy.signal.butter(order, crit_freq, btype = 'bandpass', fs = sampling_freq)
+  processed_signal = scipy.signal.filtfilt(b, a, sig, 1)
+  return processed_signal
 
 def fft_transform():
     pass
