@@ -3,65 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <title>EEG Visualization</title>
-    <script>
-        async function applyFilter(channel) {
-            const filterSelect = document.getElementById(`filter-${channel}`);
-            const selectedFilter = filterSelect.value;
-
-            if (selectedFilter === "none") return;
-
-            // Make a request to the server to apply the selected filter
-            const response = await fetch(`/apply_filter`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    filepath: "{{ request.args.get('filepath') }}",  // Pass the file path
-                    channel: channel,
-                    filter_type: selectedFilter
-                })
-            });
-
-            // Handle the response
-            if (response.ok) {
-                const data = await response.json();
-                // Update the plot image URL to show the new filtered image
-                const imgElement = document.getElementById(`plot-${channel}`);
-                imgElement.src = data.new_plot_url + '?t=' + new Date().getTime(); // Cache-buster
-            } else {
-                alert("Failed to apply filter.");
-            }
-        }
-
-        function setupFilterListeners() {
-            // Add change event listeners for each filter dropdown
-            document.querySelectorAll("select").forEach((selectElement, index) => {
-                selectElement.addEventListener("change", () => applyFilter(index + 1)); // Assuming index starts at 0
-            });
-        }
-
-        // Initialize filter listeners after the page loads
-        window.onload = setupFilterListeners;
-    </script>
 </head>
 <body>
     <h1>EEG Channel Visualizations</h1>
     
     {% for plot_url in plot_paths %}
     <div style="margin-bottom: 30px;">
-        <img id="plot-{{ loop.index }}" src="{{ plot_url }}" alt="EEG Data Plot for Channel {{ loop.index }}" width="800">
+        <img src="{{ plot_url }}" alt="EEG Data Plot for Channel {{ loop.index }}" width="800">
         <div>
             <label for="filter-{{ loop.index }}">Filter Options:</label>
-            <select id="filter-{{ loop.index }}" class="filter-dropdown"> <!-- Ensure this class is added -->
+            <select id="filter-{{ loop.index }}">
                 <option value="none">Select Filter</option>
                 <option value="bandpass">Bandpass</option>
                 <option value="fft">FFT</option>
                 <option value="average">Averaging</option>
-                <!-- Add more filter options here if needed -->
+                <!-- add more here -->
             </select>
         </div>
     </div>
     {% endfor %}
+
 </body>
 </html>
