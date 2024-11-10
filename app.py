@@ -3,7 +3,7 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 from werkzeug.utils import secure_filename
-import scipy.signal
+import scipy
 
 # Use Agg backend to avoid GUI issues on macOS
 plt.switch_backend('Agg')
@@ -80,8 +80,8 @@ def bandpass_filter(sig, order, lowcut, highcut, sampling_freq):
 def notch_filter(data, notch_freq, fs, quality_factor=30):
     nyquist = 0.5 * fs 
     low = notch_freq / nyquist # Normalizes the notch frequency by dividing the Nyquist frequency
-    b, a = signal.iirnotch(low, quality_factor) # Designing the notch filter using iirnotch. Creates a filter to remove a specific frequency
-    filtered_signal = signal.filtfilt(b, a, data) # Applies the filter forward and backward to avoid phase shift (zero-phase filtering)
+    b, a = scipy.signal.iirnotch(low, quality_factor) # Designing the notch filter using iirnotch. Creates a filter to remove a specific frequency
+    filtered_signal = scipy.signal.filtfilt(b, a, data) # Applies the filter forward and backward to avoid phase shift (zero-phase filtering)
     return filtered_signal
 
 @app.route('/apply_filter', methods=['POST'])
