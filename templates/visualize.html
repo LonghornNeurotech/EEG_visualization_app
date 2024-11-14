@@ -25,11 +25,19 @@
                 <option value="average">Average</option>
             </select><br><br>
 
-            <label for="lowcut">Lowcut Frequency (Hz):</label>
-            <input type="number" id="lowcut" name="lowcut" step="any"><br><br>
+            <label for="lowcut">Low Cut Frequency:</label>
+            <input type="range" id="lowcut" name="lowcut" min="0" max="50" step="1" value="0" oninput="updateValue('lowcutValue', this.value)">
+            <span id="lowcutValue">0</span> Hz<br><br>
 
-            <label for="highcut">Highcut Frequency (Hz):</label>
-            <input type="number" id="highcut" name="highcut" step="any"><br><br>
+            <label for="highcut">High Cut Frequency:</label>
+            <input type="range" id="highcut" name="highcut" min="0" max="100  " step="1" value="100" oninput="updateValue('highcutValue', this.value)">
+            <span id="highcutValue">100</span> Hz<br><br>
+
+            <script>
+            function updateValue(id, value) {
+            document.getElementById(id).textContent = value;
+            }
+            </script>
 
             <label for="channel">Channel Index (0-based):</label>
             <input type="number" id="channel" name="channel" min="0"><br><br>
