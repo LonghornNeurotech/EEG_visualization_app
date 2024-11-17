@@ -84,6 +84,19 @@ def notch_filter(data, notch_freq, fs, quality_factor=30):
     filtered_signal = scipy.signal.filtfilt(b, a, data) # Applies the filter forward and backward to avoid phase shift (zero-phase filtering)
     return filtered_signal
 
+def average_filter(data, window_size):
+    # Convolution kernel (moving average filter)
+    kernel = np.ones(window_size) / window_size
+    pad_width = window_size // 2  # Define padding size
+
+    # Apply padding
+    padded_data = np.pad(data, (pad_width, pad_width), mode='reflect')
+
+    # Convolve
+    filtered_data = np.convolve(padded_data, kernel, mode='valid')
+    
+    return filtered_data
+
 @app.route('/apply_filter', methods=['POST'])
 def apply_filter():
     data = request.json
@@ -113,6 +126,8 @@ def apply_filter():
         # Apply the selected filter type
         if filter_type == 'bandpass':
             filtered_data = bandpass_filter(eeg_channel_data, order=4, lowcut=lowcut, highcut=highcut, sampling_freq=1000)
+        elif filter_type == 'average':
+            filtered_data = average_filter(eeg_channel_data, window_size=10)
         else:
             return jsonify({'error': 'Invalid filter type'}), 400
 
