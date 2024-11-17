@@ -3,7 +3,9 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 from werkzeug.utils import secure_filename
-import scipy
+import scipy.signal
+from scipy.fft import fft, ifft
+
 
 # Use Agg backend to avoid GUI issues on macOS
 plt.switch_backend('Agg')
@@ -72,17 +74,51 @@ def visualize():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+def notch_filter(data, notch_freq, fs, quality_factor=30):
+    nyquist = 0.5 * fs 
+    low = notch_freq / nyquist # Normalizes the notch frequency by dividing the Nyquist frequency
+    b, a = signal.iirnotch(low, quality_factor) # Designing the notch filter using iirnotch. Creates a filter to remove a specific frequency
+    filtered_signal = signal.filtfilt(b, a, data) # Applies the filter forward and backward to avoid phase shift (zero-phase filtering)
+    return filtered_signal
+
 def bandpass_filter(sig, order, lowcut, highcut, sampling_freq):
     b, a = scipy.signal.butter(order, [lowcut, highcut], btype='band', fs=sampling_freq)
     processed_signal = scipy.signal.filtfilt(b, a, sig)
     return processed_signal
 
-def notch_filter(data, notch_freq, fs, quality_factor=30):
-    nyquist = 0.5 * fs 
-    low = notch_freq / nyquist # Normalizes the notch frequency by dividing the Nyquist frequency
-    b, a = scipy.signal.iirnotch(low, quality_factor) # Designing the notch filter using iirnotch. Creates a filter to remove a specific frequency
-    filtered_signal = scipy.signal.filtfilt(b, a, data) # Applies the filter forward and backward to avoid phase shift (zero-phase filtering)
-    return filtered_signal
+def fft_filter(data, fs, lowcut=None, highcut=None):
+    """
+    Apply an FFT-based filter (low-pass, high-pass, or band-pass).
+    
+    Parameters:
+    - data: The EEG signal (1D array) to be filtered
+    - fs: The sampling frequency of the signal
+    - lowcut: The lower cutoff frequency for the filter (None for no low-pass filtering)
+    - highcut: The upper cutoff frequency for the filter (None for no high-pass filtering)
+    
+    Returns:
+    - filtered_data: The filtered signal after applying the FFT filter
+    """
+    # Perform FFT on the signal
+    N = len(data)
+    fft_data = fft(data)
+    
+    # Frequency axis
+    freqs = np.fft.fftfreq(N, 1/fs)
+    
+    # Apply low-pass filter (zero out frequencies above highcut)
+    if highcut:
+        fft_data[np.abs(freqs) > highcut] = 0
+    
+    # Apply high-pass filter (zero out frequencies below lowcut)
+    if lowcut:
+        fft_data[np.abs(freqs) < lowcut] = 0
+    
+    # Perform inverse FFT to get the filtered signal in the time domain
+    filtered_data = np.real(ifft(fft_data))
+    
+    return filtered_data
+
 
 @app.route('/apply_filter', methods=['POST'])
 def apply_filter():
@@ -113,6 +149,8 @@ def apply_filter():
         # Apply the selected filter type
         if filter_type == 'bandpass':
             filtered_data = bandpass_filter(eeg_channel_data, order=4, lowcut=lowcut, highcut=highcut, sampling_freq=1000)
+        elif filter_type == 'fft':
+            filtered_data = fft_filter(eeg_channel_data, fs=1000)
         else:
             return jsonify({'error': 'Invalid filter type'}), 400
 
