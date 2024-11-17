@@ -84,12 +84,26 @@ def notch_filter(data, notch_freq, fs, quality_factor=30):
     filtered_signal = scipy.signal.filtfilt(b, a, data) # Applies the filter forward and backward to avoid phase shift (zero-phase filtering)
     return filtered_signal
 
+from sklearn.preprocessing import StandardScaler
+def standard_scaler_filter(data):
+    data = np.array(data).reshape(-1, 1)
+    scaler = StandardScaler()
+    scaled_data = scaler.fit_transform(data)
+    return scaled_data
+
+from sklearn.preprocessing import MinMaxScaler
+def min_max_scaler_filter(data):
+    data = np.array(data).reshape(-1, 1)
+    scaler = MinMaxScaler()
+    scaled_data = scaler.fit_transform(data)
+    return scaled_data
+
 @app.route('/apply_filter', methods=['POST'])
 def apply_filter():
     data = request.json
     print(f"Received data: {data}")
     filename = data.get('filepath')
-    channel_index = data.get('channel')
+    channel_index = data.get('channel') - 1
     filter_type = data.get('filter_type')
     lowcut = data.get('lowcut')
     highcut = data.get('highcut')
@@ -113,6 +127,10 @@ def apply_filter():
         # Apply the selected filter type
         if filter_type == 'bandpass':
             filtered_data = bandpass_filter(eeg_channel_data, order=4, lowcut=lowcut, highcut=highcut, sampling_freq=1000)
+        elif filter_type == 'standard-scaler':
+            filtered_data = standard_scaler_filter(eeg_channel_data)
+        elif filter_type == 'min-max-scaler':
+            filtered_data = min_max_scaler_filter(eeg_channel_data)
         else:
             return jsonify({'error': 'Invalid filter type'}), 400
 

@@ -23,15 +23,19 @@
                 <option value="bandpass">Bandpass</option>
                 <option value="fft">FFT</option>
                 <option value="average">Average</option>
+                <option value="standard-scaler">Standard Scaler</option>
+                <option value="min-max-scaler">Min Max Scaler</option>
             </select><br><br>
 
-            <label for="lowcut">Low Cut Frequency:</label>
-            <input type="range" id="lowcut" name="lowcut" min="0" max="50" step="1" value="0" oninput="updateValue('lowcutValue', this.value)">
-            <span id="lowcutValue">0</span> Hz<br><br>
+            <div id="filter-parameters">
+                <label for="lowcut">Low Cut Frequency:</label>
+                <input type="range" id="lowcut" name="lowcut" min="0" max="50" step="1" value="0" oninput="updateValue('lowcutValue', this.value)">
+                <span id="lowcutValue">0</span> Hz<br><br>
 
-            <label for="highcut">High Cut Frequency:</label>
-            <input type="range" id="highcut" name="highcut" min="0" max="100  " step="1" value="100" oninput="updateValue('highcutValue', this.value)">
-            <span id="highcutValue">100</span> Hz<br><br>
+                <label for="highcut">High Cut Frequency:</label>
+                <input type="range" id="highcut" name="highcut" min="0" max="100  " step="1" value="100" oninput="updateValue('highcutValue', this.value)">
+                <span id="highcutValue">100</span> Hz<br><br>
+            </div>
 
             <script>
             function updateValue(id, value) {
@@ -39,7 +43,7 @@
             }
             </script>
 
-            <label for="channel">Channel Index (0-based):</label>
+            <label for="channel">Channel Index:</label>
             <input type="number" id="channel" name="channel" min="0"><br><br>
 
             <button type="submit">Apply Filter</button>
@@ -47,7 +51,7 @@
     </div>
 
     <div id="newPlot">
-        <!-- The new plot will be inserted here after applying the filter -->
+        <!-- Unused, new plots replace old plots -->
     </div>
 </body>
 </html>

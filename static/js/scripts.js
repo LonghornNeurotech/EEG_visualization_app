@@ -6,12 +6,23 @@ document.addEventListener('DOMContentLoaded', function () {
     const highcutInput = document.getElementById('highcut');
     const channelInput = document.getElementById('channel');
     const filepath = new URLSearchParams(window.location.search).get('filepath');  // Get filename from query params
+    const filterParam = document.getElementById('filter-parameters');
 
     // Check if filepath is available
     if (!filepath) {
         alert('Error: No filepath provided.');
         return;
     }
+
+    filterTypeInput.addEventListener('change', function () {
+        // Hide filter parameters for scaling
+        if(filterTypeInput.value === 'standard-scaler' || filterTypeInput.value === 'min-max-scaler'){
+            filterParam.style.display = "none";
+        }
+        else{
+            filterParam.style.display = "block";
+        }
+    })
 
     filterForm.addEventListener('submit', function (event) {
         event.preventDefault(); // Prevent page reload
@@ -38,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(responseData => {
             if (responseData.new_plot_url) {
                 // If the response contains a new plot URL, update the page with the new plot
-                const newPlotDiv = document.getElementById('newPlot');
+                const newPlotDiv = document.getElementById('plots');
                 const newPlotImage = document.createElement('img');
                 newPlotImage.src = responseData.new_plot_url;
                 newPlotImage.style.maxWidth = '500px';  // Set the same max width as other plots
