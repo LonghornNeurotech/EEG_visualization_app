@@ -18,51 +18,84 @@ def home():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
+    if 'file1' not in request.files or 'file2' not in request.files:
+        return jsonify({'error': 'Both files are required'}), 400
 
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
+    file1 = request.files['file1']
+    file2 = request.files['file2']
 
-    if file and file.filename.endswith('.npy'):
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
+    if file1.filename == '' or file2.filename == '':
+        return jsonify({'error': 'One or both files not selected'}), 400
+
+    if file1 and file1.filename.endswith('.npy') and file2 and file2.filename.endswith('.npy'):
+        filename1 = secure_filename(file1.filename)
+        filename2 = secure_filename(file2.filename)
+        filepath1 = os.path.join(app.config['UPLOAD_FOLDER'], filename1)
+        filepath2 = os.path.join(app.config['UPLOAD_FOLDER'], filename2)
+        file1.save(filepath1)
+        file2.save(filepath2)
+        print("FILEPATH1:", filepath1)
+        print("FILEPATH2:", filepath2)
 
         # Redirect to visualize page after successful upload
-        return redirect(url_for('visualize', filepath=filename))
+        return redirect(url_for('visualize', filepath1=filename1, filepath2=filename2))
     else:
         return jsonify({'error': 'Invalid file format. Only .npy files allowed.'}), 400
 
 @app.route('/visualize')
 def visualize():
-    filename = request.args.get('filepath')
-    
-    if not filename:
-        return jsonify({'error': 'Filepath not provided'}), 400
-    
+    print("REQUEST:\n", request)
+    filename1 = request.args.get('filepath1')
+    filename2 = request.args.get('filepath2')
+
+    if not filename1 or not filename2:
+        return jsonify({'error': 'Filepaths not provided'}), 400
+
     try:
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        eeg_data = np.load(filepath)
+        filepath1 = os.path.join(app.config['UPLOAD_FOLDER'], filename1)
+        filepath2 = os.path.join(app.config['UPLOAD_FOLDER'], filename2)
+        eeg_data1 = np.load(filepath1)
+        eeg_data2 = np.load(filepath2)
 
         # Truncate the first value in each channel's data
-        eeg_data = eeg_data[:, 1:]
+        eeg_data1 = eeg_data1[:, 1:]
+        eeg_data2 = eeg_data2[:, 1:]
 
         # Save original data for resetting
-        np.save(os.path.join(app.config['UPLOAD_FOLDER'], f'original_{filename}'), eeg_data)
+        np.save(os.path.join(app.config['UPLOAD_FOLDER'], f'original_{filename1}'), eeg_data1)
+        np.save(os.path.join(app.config['UPLOAD_FOLDER'], f'original_{filename2}'), eeg_data2)
 
-        # Generate individual plots for each channel
+        # Generate plots for each channel per file
         plot_paths = []
-        for i in range(eeg_data.shape[0]):
-            fig, ax = plt.subplots(figsize=(6, 2))  # Smaller size for the plot
-            ax.plot(eeg_data[i], label=f'Channel {i+1}')
-            ax.set_title(f"EEG Data - Channel {i+1}")
+        num_channels1 = eeg_data1.shape[0]
+        num_channels2 = eeg_data2.shape[0]
+        colors = ['blue', 'orange']  # Different colors for the two files
+
+        # Plot channels for the first file
+        for i in range(num_channels1):
+            fig, ax = plt.subplots(figsize=(6, 4))
+            ax.plot(eeg_data1[i], label=f'File 1 - Channel {i + 1}', color=colors[0])
+            ax.set_title(f"EEG Data - File 1 - Channel {i + 1}")
             ax.set_xlabel("Time")
             ax.set_ylabel("Amplitude")
             ax.legend(loc="upper right")
 
-            plot_filename = f'channel_{i+1}_plot.png'
+            plot_filename = f'file1_channel_{i + 1}_plot.png'
+            plot_filepath = os.path.join(app.config['UPLOAD_FOLDER'], plot_filename)
+            fig.savefig(plot_filepath)
+            plt.close(fig)
+            plot_paths.append(url_for('static', filename=f'uploads/{plot_filename}'))
+
+        # Plot channels for the second file
+        for i in range(num_channels2):
+            fig, ax = plt.subplots(figsize=(6, 4))
+            ax.plot(eeg_data2[i], label=f'File 2 - Channel {i + 1}', color=colors[1])
+            ax.set_title(f"EEG Data - File 2 - Channel {i + 1}")
+            ax.set_xlabel("Time")
+            ax.set_ylabel("Amplitude")
+            ax.legend(loc="upper right")
+
+            plot_filename = f'file2_channel_{i + 1}_plot.png'
             plot_filepath = os.path.join(app.config['UPLOAD_FOLDER'], plot_filename)
             fig.savefig(plot_filepath)
             plt.close(fig)
@@ -78,62 +111,78 @@ def bandpass_filter(sig, order, lowcut, highcut, sampling_freq):
     return processed_signal
 
 def notch_filter(data, notch_freq, fs, quality_factor=30):
-    nyquist = 0.5 * fs 
-    low = notch_freq / nyquist # Normalizes the notch frequency by dividing the Nyquist frequency
-    b, a = scipy.signal.iirnotch(low, quality_factor) # Designing the notch filter using iirnotch. Creates a filter to remove a specific frequency
-    filtered_signal = scipy.signal.filtfilt(b, a, data) # Applies the filter forward and backward to avoid phase shift (zero-phase filtering)
+    nyquist = 0.5 * fs
+    low = notch_freq / nyquist
+    b, a = scipy.signal.iirnotch(low, quality_factor)
+    filtered_signal = scipy.signal.filtfilt(b, a, data)
     return filtered_signal
 
 @app.route('/apply_filter', methods=['POST'])
 def apply_filter():
     data = request.json
-    print(f"Received data: {data}")
-    filename = data.get('filepath')
-    channel_index = data.get('channel')
+    filename1 = data.get('filepath1')
+    filename2 = data.get('filepath2')
     filter_type = data.get('filter_type')
     lowcut = data.get('lowcut')
     highcut = data.get('highcut')
+    channel = data.get('channel')
 
-    if not filename:
-        return jsonify({'error': 'Filename not provided'}), 400
+    if not filename1 or not filename2:
+        return jsonify({'error': 'File paths not provided'}), 400
 
     try:
-        # Construct the full file path for the original data
-        full_filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        print(f"Full file path: {full_filepath}")
+        filepath1 = os.path.join(app.config['UPLOAD_FOLDER'], filename1)
+        filepath2 = os.path.join(app.config['UPLOAD_FOLDER'], filename2)
 
-        # Load the original EEG data from the file
-        eeg_data = np.load(full_filepath)
+        eeg_data1 = np.load(filepath1)
+        eeg_data2 = np.load(filepath2)
 
-        if channel_index < 0 or channel_index >= eeg_data.shape[0]:
-            return jsonify({'error': 'Invalid channel index'}), 400
-
-        eeg_channel_data = eeg_data[channel_index][1:]
-
-        # Apply the selected filter type
+        # Apply the selected filter to the specified channel
         if filter_type == 'bandpass':
-            filtered_data = bandpass_filter(eeg_channel_data, order=4, lowcut=lowcut, highcut=highcut, sampling_freq=1000)
+            # Apply bandpass filter to the selected channel
+            filter_data1 = bandpass_filter(eeg_data1[channel, 1:], 4, lowcut, highcut, 125)
+            filter_data2 = bandpass_filter(eeg_data2[channel, 1:], 4, lowcut, highcut, 125)
+
+        elif filter_type == 'fft':
+            # Apply FFT-based filtering (just a placeholder, as an example)
+            filter_data1 = np.fft.ifft(np.fft.fft(filter_data1) * np.exp(-1j * np.pi / 10))  # Example of FFT filtering
+            filter_data2 = np.fft.ifft(np.fft.fft(filter_data2) * np.exp(-1j * np.pi / 10))
+
+        elif filter_type == 'average':
+            # Apply averaging filter (smooth out the data)
+            filter_data1 = np.convolve(filter_data1, np.ones(10) / 10, mode='same')
+            filter_data2 = np.convolve(filter_data2, np.ones(10) / 10, mode='same')
+
         else:
             return jsonify({'error': 'Invalid filter type'}), 400
 
-        # Generate the new plot for the filtered data
-        fig, ax = plt.subplots(figsize=(6, 2))  # Smaller size for the plot
-        ax.plot(filtered_data, label=f'Filtered Channel {channel_index + 1}')
-        ax.set_title(f"EEG Data - Channel {channel_index + 1} ({filter_type.capitalize()})")
-        ax.set_xlabel("Time")
-        ax.set_ylabel("Amplitude")
-        ax.legend(loc="upper right")
+        # Generate new plots for the filtered data
+        fig1, ax1 = plt.subplots(figsize=(6, 4))
+        ax1.plot(filter_data1, label=f'File 1 - Channel {channel + 1}', color='blue')
+        ax1.set_title(f"EEG Data - File 1 - Channel {channel + 1} - Filtered")
+        ax1.set_xlabel("Time")
+        ax1.set_ylabel("Amplitude")
+        ax1.legend(loc="upper right")
+        new_plot_filename1 = f'filtered_file1_channel_{channel + 1}.png'
+        new_plot_filepath1 = os.path.join(app.config['UPLOAD_FOLDER'], new_plot_filename1)
+        fig1.savefig(new_plot_filepath1)
+        plt.close(fig1)
 
-        plot_filename = f'channel_{channel_index + 1}_{filter_type}_plot.png'
-        plot_filepath = os.path.join(app.config['UPLOAD_FOLDER'], plot_filename)
-        fig.savefig(plot_filepath)
-        plt.close(fig)
+        fig2, ax2 = plt.subplots(figsize=(6, 4))
+        ax2.plot(filter_data2, label=f'File 2 - Channel {channel + 1}', color='orange')
+        ax2.set_title(f"EEG Data - File 2 - Channel {channel + 1} - Filtered")
+        ax2.set_xlabel("Time")
+        ax2.set_ylabel("Amplitude")
+        ax2.legend(loc="upper right")
+        new_plot_filename2 = f'filtered_file2_channel_{channel + 1}.png'
+        new_plot_filepath2 = os.path.join(app.config['UPLOAD_FOLDER'], new_plot_filename2)
+        fig2.savefig(new_plot_filepath2)
+        plt.close(fig2)
 
-        return jsonify({'new_plot_url': url_for('static', filename=f'uploads/{plot_filename}')})
-
+        # Return the paths of the new plots
+        return jsonify({
+            'new_plot_url1': url_for('static', filename=f'uploads/{new_plot_filename1}'),
+            'new_plot_url2': url_for('static', filename=f'uploads/{new_plot_filename2}')
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
