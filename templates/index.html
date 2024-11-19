@@ -3,12 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload EEG File</title>
+    <title>Upload EEG Data Files</title>
 </head>
 <body>
-    <h1>Upload EEG File</h1>
+    <h1>Upload Two EEG Data Files</h1>
     <form action="/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".npy">
+        <label for="file1">Select the first .npy file:</label>
+        <input type="file" id="file1" name="file1" accept=".npy" required><br><br>
+        
+        <label for="file2">Select the second .npy file:</label>
+        <input type="file" id="file2" name="file2" accept=".npy" required><br><br>
+
         <button type="submit">Upload</button>
     </form>
 </body>

@@ -14,6 +14,12 @@
         <img src="{{ plot_path }}" alt="EEG Channel Plot" style="max-width: 500px; max-height: 300px; margin-bottom: 10px;">
         {% endfor %}
     </div>
+    <div id="plots1">
+   
+    </div>
+    <div id="plots2">
+    
+    </div>
 
     <div>
         <h2>Apply Filter</h2>
@@ -30,13 +36,13 @@
             <span id="lowcutValue">0</span> Hz<br><br>
 
             <label for="highcut">High Cut Frequency:</label>
-            <input type="range" id="highcut" name="highcut" min="0" max="100  " step="1" value="100" oninput="updateValue('highcutValue', this.value)">
+            <input type="range" id="highcut" name="highcut" min="0" max="100" step="1" value="100" oninput="updateValue('highcutValue', this.value)">
             <span id="highcutValue">100</span> Hz<br><br>
 
             <script>
-            function updateValue(id, value) {
-            document.getElementById(id).textContent = value;
-            }
+                function updateValue(id, value) {
+                    document.getElementById(id).textContent = value;
+                }
             </script>
 
             <label for="channel">Channel Index (0-based):</label>
@@ -46,7 +52,10 @@
         </form>
     </div>
 
-    <div id="newPlot">
+    <div id="newPlot1">
+        <!-- The new plot will be inserted here after applying the filter -->
+    </div>
+    <div id="newPlot2">
         <!-- The new plot will be inserted here after applying the filter -->
     </div>
 </body>
