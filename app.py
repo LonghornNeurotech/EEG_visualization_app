@@ -106,6 +106,7 @@ def apply_filter():
     filter_type = data.get('filter_type')
     lowcut = data.get('lowcut')
     highcut = data.get('highcut')
+    window_size = data.get('window')
 
     if not filename:
         return jsonify({'error': 'Filename not provided'}), 400
@@ -127,7 +128,7 @@ def apply_filter():
         if filter_type == 'bandpass':
             filtered_data = bandpass_filter(eeg_channel_data, order=4, lowcut=lowcut, highcut=highcut, sampling_freq=1000)
         elif filter_type == 'average':
-            filtered_data = average_filter(eeg_channel_data, window_size=10)
+            filtered_data = average_filter(eeg_channel_data, window_size)
         else:
             return jsonify({'error': 'Invalid filter type'}), 400
 

@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const lowcutInput = document.getElementById('lowcut');
     const highcutInput = document.getElementById('highcut');
     const channelInput = document.getElementById('channel');
+    const windowInput = document.getElementById('window');
     const filepath = new URLSearchParams(window.location.search).get('filepath');  // Get filename from query params
 
     // Check if filepath is available
@@ -21,7 +22,8 @@ document.addEventListener('DOMContentLoaded', function () {
             filter_type: filterTypeInput.value,
             lowcut: parseFloat(lowcutInput.value),
             highcut: parseFloat(highcutInput.value),
-            channel: parseInt(channelInput.value)
+            channel: parseInt(channelInput.value),
+            window: parseInt(windowInput.value)
         };
 
         console.log("Sending data:", data);  // Log data for debugging

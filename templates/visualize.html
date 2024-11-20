@@ -19,19 +19,31 @@
         <h2>Apply Filter</h2>
         <form id="filterForm">
             <label for="filterType">Filter Type:</label>
-            <select id="filterType">
+            <select id="filterType" onchange="updateInputs()">
                 <option value="bandpass">Bandpass</option>
                 <option value="fft">FFT</option>
                 <option value="average">Average</option>
             </select><br><br>
 
-            <label for="lowcut">Low Cut Frequency:</label>
-            <input type="range" id="lowcut" name="lowcut" min="0" max="50" step="1" value="0" oninput="updateValue('lowcutValue', this.value)">
-            <span id="lowcutValue">0</span> Hz<br><br>
+            <div id="bandpassInputs">
+                <label for="lowcut">Low Cut Frequency:</label>
+                <input type="range" id="lowcut" name="lowcut" min="0" max="50" step="1" value="0" oninput="updateValue('lowcutValue', this.value)">
+                <span id="lowcutValue">0</span> Hz<br><br>
 
-            <label for="highcut">High Cut Frequency:</label>
-            <input type="range" id="highcut" name="highcut" min="0" max="100  " step="1" value="100" oninput="updateValue('highcutValue', this.value)">
-            <span id="highcutValue">100</span> Hz<br><br>
+                <label for="highcut">High Cut Frequency:</label>
+                <input type="range" id="highcut" name="highcut" min="0" max="100  " step="1" value="100" oninput="updateValue('highcutValue', this.value)">
+                <span id="highcutValue">100</span> Hz<br><br>
+            </div>
+
+            <div id="fftInputs" style="display: none;"> <!-- Hidden by default-->
+                <!-- FILL WITH NECESSARY INPUTS-->
+            </div>
+
+            <div id="averageInputs" style="display: none;"> <!-- Hidden by default-->
+                <label for="averageType">Window Size:</label>
+                <input type="range" id="window" name="window" min="10" max="100" step="1" value="20" oninput="updateValue('windowValue', this.value)">
+                <span id="windowValue">20</span> Time Points<br><br>
+            </div>
 
             <script>
             function updateValue(id, value) {
@@ -49,5 +61,32 @@
     <div id="newPlot">
         <!-- The new plot will be inserted here after applying the filter -->
     </div>
+
+    <script>
+        // Function to update visible inputs based on selected filter type
+        function updateInputs() {
+            const filterType = document.getElementById("filterType").value;
+
+            // Hide all input groups
+            document.getElementById("bandpassInputs").style.display = "none";
+            document.getElementById("fftInputs").style.display = "none";
+            document.getElementById("averageInputs").style.display = "none";
+
+            // Show the input group based on the selected filter type
+            if (filterType === "bandpass") {
+                document.getElementById("bandpassInputs").style.display = "block";
+            } else if (filterType === "fft") {
+                document.getElementById("fftInputs").style.display = "block";
+            } else if (filterType === "average") {
+                document.getElementById("averageInputs").style.display = "block";
+            }
+        }
+
+        // Function to update displayed values of sliders
+        function updateValue(id, value) {
+            document.getElementById(id).textContent = value;
+        }
+    </script>
+
 </body>
 </html>
