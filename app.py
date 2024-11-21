@@ -66,7 +66,9 @@ def visualize():
         np.save(os.path.join(app.config['UPLOAD_FOLDER'], f'original_{filename2}'), eeg_data2)
 
         # Generate plots for each channel per file
-        plot_paths = []
+        plot_paths1 = []  # For file 1
+
+        plot_paths2 = []  # For file 2
         num_channels1 = eeg_data1.shape[0]
         num_channels2 = eeg_data2.shape[0]
         colors = ['blue', 'orange']  # Different colors for the two files
@@ -84,7 +86,7 @@ def visualize():
             plot_filepath = os.path.join(app.config['UPLOAD_FOLDER'], plot_filename)
             fig.savefig(plot_filepath)
             plt.close(fig)
-            plot_paths.append(url_for('static', filename=f'uploads/{plot_filename}'))
+            plot_paths1.append(url_for('static', filename=f'uploads/{plot_filename}'))
 
         # Plot channels for the second file
         for i in range(num_channels2):
@@ -99,9 +101,9 @@ def visualize():
             plot_filepath = os.path.join(app.config['UPLOAD_FOLDER'], plot_filename)
             fig.savefig(plot_filepath)
             plt.close(fig)
-            plot_paths.append(url_for('static', filename=f'uploads/{plot_filename}'))
+            plot_paths2.append(url_for('static', filename=f'uploads/{plot_filename}'))
 
-        return render_template('visualize.html', plot_paths=plot_paths)
+        return render_template('visualize.html', plot_paths1=plot_paths1, plot_paths2=plot_paths2)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -125,7 +127,8 @@ def apply_filter():
     filter_type = data.get('filter_type')
     lowcut = data.get('lowcut')
     highcut = data.get('highcut')
-    channel = data.get('channel')
+    channel = int(data.get('channel'))
+    sampling_freq = 125  # Example sampling frequency
 
     if not filename1 or not filename2:
         return jsonify({'error': 'File paths not provided'}), 400
@@ -137,49 +140,44 @@ def apply_filter():
         eeg_data1 = np.load(filepath1)
         eeg_data2 = np.load(filepath2)
 
-        # Apply the selected filter to the specified channel
+        # Original signals
+        original_signal1 = eeg_data1[channel, 1:]
+        original_signal2 = eeg_data2[channel, 1:]
+
+        # Apply the selected filter
         if filter_type == 'bandpass':
-            # Apply bandpass filter to the selected channel
-            filter_data1 = bandpass_filter(eeg_data1[channel, 1:], 4, lowcut, highcut, 125)
-            filter_data2 = bandpass_filter(eeg_data2[channel, 1:], 4, lowcut, highcut, 125)
-
+            filtered_signal1 = bandpass_filter(original_signal1, 4, lowcut, highcut, sampling_freq)
+            filtered_signal2 = bandpass_filter(original_signal2, 4, lowcut, highcut, sampling_freq)
         elif filter_type == 'fft':
-            # Apply FFT-based filtering (just a placeholder, as an example)
-            filter_data1 = np.fft.ifft(np.fft.fft(filter_data1) * np.exp(-1j * np.pi / 10))  # Example of FFT filtering
-            filter_data2 = np.fft.ifft(np.fft.fft(filter_data2) * np.exp(-1j * np.pi / 10))
-
+            filtered_signal1 = np.fft.ifft(np.fft.fft(original_signal1)).real
+            filtered_signal2 = np.fft.ifft(np.fft.fft(original_signal2)).real
         elif filter_type == 'average':
-            # Apply averaging filter (smooth out the data)
-            filter_data1 = np.convolve(filter_data1, np.ones(10) / 10, mode='same')
-            filter_data2 = np.convolve(filter_data2, np.ones(10) / 10, mode='same')
-
+            filtered_signal1 = np.convolve(original_signal1, np.ones(10) / 10, mode='same')
+            filtered_signal2 = np.convolve(original_signal2, np.ones(10) / 10, mode='same')
         else:
             return jsonify({'error': 'Invalid filter type'}), 400
 
-        # Generate new plots for the filtered data
+        # Save original and filtered plots for file 1
         fig1, ax1 = plt.subplots(figsize=(6, 4))
-        ax1.plot(filter_data1, label=f'File 1 - Channel {channel + 1}', color='blue')
-        ax1.set_title(f"EEG Data - File 1 - Channel {channel + 1} - Filtered")
-        ax1.set_xlabel("Time")
-        ax1.set_ylabel("Amplitude")
+        # ax1.plot(original_signal1, label='Original', color='blue', alpha=0.6)
+        ax1.plot(filtered_signal1, label='Filtered', color='red')
+        ax1.set_title(f"File 1 - Channel {channel + 1}")
         ax1.legend(loc="upper right")
         new_plot_filename1 = f'filtered_file1_channel_{channel + 1}.png'
-        new_plot_filepath1 = os.path.join(app.config['UPLOAD_FOLDER'], new_plot_filename1)
-        fig1.savefig(new_plot_filepath1)
+        fig1.savefig(os.path.join(app.config['UPLOAD_FOLDER'], new_plot_filename1))
         plt.close(fig1)
 
+        # Save original and filtered plots for file 2
         fig2, ax2 = plt.subplots(figsize=(6, 4))
-        ax2.plot(filter_data2, label=f'File 2 - Channel {channel + 1}', color='orange')
-        ax2.set_title(f"EEG Data - File 2 - Channel {channel + 1} - Filtered")
-        ax2.set_xlabel("Time")
-        ax2.set_ylabel("Amplitude")
+        # ax2.plot(original_signal2, label='Original', color='orange', alpha=0.6)
+        ax2.plot(filtered_signal2, label='Filtered', color='green')
+        ax2.set_title(f"File 2 - Channel {channel + 1}")
         ax2.legend(loc="upper right")
         new_plot_filename2 = f'filtered_file2_channel_{channel + 1}.png'
-        new_plot_filepath2 = os.path.join(app.config['UPLOAD_FOLDER'], new_plot_filename2)
-        fig2.savefig(new_plot_filepath2)
+        fig2.savefig(os.path.join(app.config['UPLOAD_FOLDER'], new_plot_filename2))
         plt.close(fig2)
 
-        # Return the paths of the new plots
+        # Return the new plot URLs
         return jsonify({
             'new_plot_url1': url_for('static', filename=f'uploads/{new_plot_filename1}'),
             'new_plot_url2': url_for('static', filename=f'uploads/{new_plot_filename2}')
