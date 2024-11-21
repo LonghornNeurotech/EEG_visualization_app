@@ -4,24 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EEG Data Visualization</title>
+    <!--<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">-->
     <script src="{{ url_for('static', filename='js/scripts.js') }}" defer></script>
 </head>
 <body>
     <h1>EEG Data Visualization</h1>
 
-    <div id="plots">
-        {% for plot_path in plot_paths %}
-        <img src="{{ plot_path }}" alt="EEG Channel Plot" style="max-width: 500px; max-height: 300px; margin-bottom: 10px;">
+    <div id="plots1">
+        <h3>File 1</h3>
+        {% for plot_path in plot_paths1 %}
+            <div class="plot-container">
+                <img src="{{ plot_path }}" alt="Original EEG Channel Plot" class="original-plot">
+            </div>
         {% endfor %}
     </div>
-    <div id="plots1">
-   
-    </div>
-    <div id="plots2">
     
+    <div id="plots2">
+        <h3>File 2</h3>
+        {% for plot_path in plot_paths2 %}
+            <div class="plot-container">
+                <img src="{{ plot_path }}" alt="Original EEG Channel Plot" class="original-plot">
+            </div>
+        {% endfor %}
     </div>
-
-    <div>
+    
+    <!-- Filtered plots will be dynamically inserted here -->
+    <div id="newPlot1">
+        <h3>Filtered Data - File 1</h3>
+    </div>
+    <div id="newPlot2">
+        <h3>Filtered Data - File 2</h3>
+    </div>
+    
         <h2>Apply Filter</h2>
         <form id="filterForm">
             <label for="filterType">Filter Type:</label>
@@ -52,11 +66,6 @@
         </form>
     </div>
 
-    <div id="newPlot1">
-        <!-- The new plot will be inserted here after applying the filter -->
-    </div>
-    <div id="newPlot2">
-        <!-- The new plot will be inserted here after applying the filter -->
-    </div>
+
 </body>
 </html>
