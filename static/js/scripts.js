@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
     filterForm.addEventListener('submit', function (event) {
         event.preventDefault(); // Prevent page reload
 
-        const data = {
+        data = {
             filepath1: filepath1,  // Send the first filename
             filepath2: filepath2,  // Send the second filename
             filter_type: filterTypeInput.value,
@@ -40,6 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(responseData => {
             if (responseData.new_plot_url1 && responseData.new_plot_url2) {
                 // If the response contains new plot URLs, update the page with the new plots
+                console.log("reaching response in js file");
                 const newPlotDiv1 = document.getElementById('newPlot1');
                 const newPlotImage1 = document.createElement('img');
                 newPlotImage1.src = responseData.new_plot_url1;
