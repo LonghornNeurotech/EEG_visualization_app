@@ -112,7 +112,7 @@ def apply_filter():
 
         # Apply the selected filter type
         if filter_type == 'bandpass':
-            filtered_data = bandpass_filter(eeg_channel_data, order=4, lowcut=lowcut, highcut=highcut, sampling_freq=1000)
+            filtered_data = bandpass_filter(eeg_channel_data, order=4, lowcut=lowcut, highcut=highcut, sampling_freq=1000)     
         else:
             return jsonify({'error': 'Invalid filter type'}), 400
 

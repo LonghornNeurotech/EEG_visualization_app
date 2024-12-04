@@ -19,7 +19,7 @@
         <h2>Apply Filter</h2>
         <form id="filterForm">
             <label for="filterType">Filter Type:</label>
-            <select id="filterType">
+            <select id="filterType" onchange="toggleSigmaInput()">
                 <option value="bandpass">Bandpass</option>
                 <option value="fft">FFT</option>
                 <option value="average">Average</option>
