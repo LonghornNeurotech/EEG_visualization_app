@@ -80,7 +80,7 @@ def bandpass_filter(sig, order, lowcut, highcut, sampling_freq):
 def notch_filter(data, notch_freq, fs, quality_factor=30):
     nyquist = 0.5 * fs 
     low = notch_freq / nyquist # Normalizes the notch frequency by dividing the Nyquist frequency
-    b, a = signal.iirnotch(low, quality_factor) # Designing the notch filter using iirnotch. Creates a filter to remove a specific frequency
+    b, a = signal.iirnotch(low, Q) # Designing the notch filter using iirnotch. Creates a filter to remove a specific frequency
     filtered_signal = signal.filtfilt(b, a, data) # Applies the filter forward and backward to avoid phase shift (zero-phase filtering)
     return filtered_signal
 
@@ -93,6 +93,7 @@ def apply_filter():
     filter_type = data.get('filter_type')
     lowcut = data.get('lowcut')
     highcut = data.get('highcut')
+    notch_freq = data.get('notch_freq')
 
     if not filename:
         return jsonify({'error': 'Filename not provided'}), 400
@@ -113,9 +114,14 @@ def apply_filter():
         # Apply the selected filter type
         if filter_type == 'bandpass':
             filtered_data = bandpass_filter(eeg_channel_data, order=4, lowcut=lowcut, highcut=highcut, sampling_freq=1000)
+
+        elif filter_type == 'notch':
+            notch_freq = data.get('notch_freq')
+            filtered_data = notch_filter(eeg_data, notch_freq=notch_freq, fs=1000, Q=30)
+            
         else:
             return jsonify({'error': 'Invalid filter type'}), 400
-
+            
         # Generate the new plot for the filtered data
         fig, ax = plt.subplots(figsize=(6, 2))  # Smaller size for the plot
         ax.plot(filtered_data, label=f'Filtered Channel {channel_index + 1}')
