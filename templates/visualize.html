@@ -26,11 +26,11 @@
             </select><br><br>
 
             <label for="lowcut">Low Cut Frequency:</label>
-            <input type="range" id="lowcut" name="lowcut" min="0" max="50" step="1" value="0" oninput="updateValue('lowcutValue', this.value)">
-            <span id="lowcutValue">0</span> Hz<br><br>
+            <input type="range" id="lowcut" name="lowcut" min="1" max="50" step="1" value="0" oninput="updateValue('lowcutValue', this.value)">
+            <span id="lowcutValue">1</span> Hz<br><br>
 
             <label for="highcut">High Cut Frequency:</label>
-            <input type="range" id="highcut" name="highcut" min="0" max="100  " step="1" value="100" oninput="updateValue('highcutValue', this.value)">
+            <input type="range" id="highcut" name="highcut" min="2" max="100  " step="1" value="100" oninput="updateValue('highcutValue', this.value)">
             <span id="highcutValue">100</span> Hz<br><br>
 
             <script>
