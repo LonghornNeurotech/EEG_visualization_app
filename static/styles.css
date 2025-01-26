@@ -1,0 +1,41 @@
+body {
+    background-color: #000;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    padding: 20px;
+}
+
+h1 {
+    color: #BF5700; /* UT Austin Burnt Orange */
+    text-align: center;
+}
+
+label, select, input, button {
+    display: block;
+    margin: 10px auto;
+}
+
+button {
+    background-color: #BF5700;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #a04d00;
+}
+
+.plots img {
+    width: 200px;
+    height: auto;
+    margin: 10px;
+}

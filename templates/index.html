@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EEG Filter Visualization</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>EEG Filter Visualization</h1>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <label for="npy_files">Upload .npy files:</label>
+            <input type="file" id="npy_files" name="npy_files" multiple accept=".npy">
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+</body>
+</html>
