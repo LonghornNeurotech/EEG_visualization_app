@@ -64,8 +64,9 @@ def visualize():
 @app.route('/apply_filter', methods=['POST'])
 def apply_filter():
     file_path = request.form['file']
-    channel = int(request.form['channel'])
+    channel = int(request.form['channel']) - 1 # To convert number to index for ease of use
     filter_type = request.form['filter']
+    window_size = int(request.form['window_size'])
 
     arr = np.load(file_path)
 
@@ -74,6 +75,35 @@ def apply_filter():
         high_cut = float(request.form['high_cut'])
         b, a = butter(4, [low_cut, high_cut], btype='band', fs=1000)
         arr[channel] = filtfilt(b, a, arr[channel])
+
+    elif filter_type == 'zscore': # Written by Sarah
+        channel_data = arr[channel]
+        mean = np.mean(channel_data)
+        std = np.std(channel_data)
+        if std == 0:
+            std = 1  
+        channel_data = (channel_data - mean) / std
+        arr[channel] = channel_data
+    
+    elif filter_type == 'minmax': # Written by Sarah
+        channel_data = arr[channel]
+        max = np.max(channel_data)
+        min = np.min(channel_data) 
+        channel_data = (channel_data - min) / (max - min)
+        arr[channel] = channel_data
+
+    elif filter_type == 'average': # Written by Marco
+        # Convolution kernel (moving average filter)
+        kernel = np.ones(window_size) / window_size
+        pad_width = window_size // 2 # Define padding size
+
+        # Apply padding
+        padded_data = np.pad(arr[channel][1:], (pad_width, pad_width), mode='reflect')
+
+        # Convolve
+        filtered_data = np.convolve(padded_data, kernel, mode='valid')
+
+        arr[channel] = filtered_data
 
     np.save(file_path, arr)
 

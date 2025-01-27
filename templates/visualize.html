@@ -31,18 +31,24 @@
                 <option value="bandpass">Bandpass</option>
                 <option value="fft">FFT</option>
                 <option value="average">Average</option>
+                <option value="zscore">Z-Score Normalization</option>
+                <option value="minmax">Min-max Normalization</option>
             </select><br><br>
 
             <label for="low_cut">Low Cut Frequency:</label>
-            <input type="range" id="low_cut" name="low_cut" min="0" max="50" step="1" value="0">
+            <input type="range" id="low_cut" name="low_cut" min="1" max="50" step="1" value="1">
             <span id="low_cut_value">0</span> Hz<br><br>
 
             <label for="high_cut">High Cut Frequency:</label>
-            <input type="range" id="high_cut" name="high_cut" min="0" max="100" step="1" value="100">
+            <input type="range" id="high_cut" name="high_cut" min="2" max="100" step="1" value="100">
             <span id="high_cut_value">100</span> Hz<br><br>
 
-            <label for="channel">Channel Index (0-based):</label>
-            <input type="number" id="channel" name="channel" min="0"><br><br>
+            <label for="window_size">Window Size:</label>
+            <input type="range" id="window_size" name="window_size" min="10" max="100" step="1" value="10">
+            <span id="window_size_value">10</span><br><br>
+
+            <label for="channel">Channel:</label>
+            <input type="number" id="channel" name="channel" min="1"><br><br>
 
             <button type="submit">Apply Filter</button>
         </form>

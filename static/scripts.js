@@ -12,13 +12,11 @@ document.getElementById('filter').addEventListener('change', function () {
                 <input type="range" id="high_cut" name="high_cut" min="0" max="100">
             `;
             break;
-        case 'normalization':
-            filterParameters.innerHTML = `<label for="norm_param">Normalization Parameter:</label>
-                <input type="range" id="norm_param" name="norm_param" min="0" max="1" step="0.01">`;
-            break;
         case 'averaging':
-            filterParameters.innerHTML = `<label for="average_param">Averaging Parameter:</label>
-                <input type="range" id="average_param" name="average_param" min="1" max="10">`;
+            filterParameters.innerHTML = `
+                <label for="window_size">Window Size:</label>
+                <input type="range" id="window_size" name="window_size" min="10" max="100">
+            `;
             break;
     }
 });
@@ -60,6 +58,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const highCutSlider = document.getElementById('high_cut');
     const highCutValue = document.getElementById('high_cut_value');
 
+    const windowSizeSlider = document.getElementById('window_size');
+    const windowSizeValue = document.getElementById('window_size_value');
+
     // Set initial values
     lowCutValue.textContent = lowCutSlider.value;
     highCutValue.textContent = highCutSlider.value;
@@ -72,6 +73,11 @@ document.addEventListener('DOMContentLoaded', function () {
     highCutSlider.addEventListener('input', function () {
         console.log(`High cut slider changed to: ${highCutSlider.value}`);
         highCutValue.textContent = highCutSlider.value;
+    });
+
+    windowSizeSlider.addEventListener('input', function () {
+        console.log(`Window size slider changed to: ${windowSizeSlider.value}`);
+        windowSizeValue.textContent = windowSizeSlider.value;
     });
     
 });
