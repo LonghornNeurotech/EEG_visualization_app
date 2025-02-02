@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import os
 import base64
 import io
-from scipy import fft, ifft
+from scipy.fft import fft, ifft
 from io import BytesIO
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from scipy.signal import butter, filtfilt
