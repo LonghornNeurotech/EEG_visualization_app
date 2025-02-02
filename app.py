@@ -64,7 +64,7 @@ def visualize():
 @app.route('/apply_filter', methods=['POST'])
 def apply_filter():
     file_path = request.form['file']
-    channel = int(request.form['channel']) - 1 # To convert number to index for ease of use
+    channel = int(request.form['channel']) - 1  # Convert number to zero-based index
     filter_type = request.form['filter']
     window_size = int(request.form['window_size'])
 
@@ -74,9 +74,18 @@ def apply_filter():
         low_cut = float(request.form['low_cut'])
         high_cut = float(request.form['high_cut'])
         b, a = butter(4, [low_cut, high_cut], btype='band', fs=1000)
-        arr[channel] = filtfilt(b, a, arr[channel])
 
-    elif filter_type == 'zscore': # Written by Sarah
+        
+
+        # Ensure all channels have the same length
+        arr = arr[:, 1:]  # Remove the first column from ALL channels
+        # Apply filter to the entire signal
+        filtered_signal = filtfilt(b, a, arr[channel])
+
+        # Assign the filtered signal (minus the first value)
+        arr[channel] = filtered_signal
+
+    elif filter_type == 'zscore':  # Written by Sarah
         channel_data = arr[channel]
         mean = np.mean(channel_data)
         std = np.std(channel_data)
@@ -84,18 +93,17 @@ def apply_filter():
             std = 1  
         channel_data = (channel_data - mean) / std
         arr[channel] = channel_data
-    
-    elif filter_type == 'minmax': # Written by Sarah
+
+    elif filter_type == 'minmax':  # Written by Sarah
         channel_data = arr[channel]
-        max = np.max(channel_data)
-        min = np.min(channel_data) 
-        channel_data = (channel_data - min) / (max - min)
+        max_val = np.max(channel_data)
+        min_val = np.min(channel_data) 
+        channel_data = (channel_data - min_val) / (max_val - min_val)
         arr[channel] = channel_data
 
-    elif filter_type == 'average': # Written by Marco
-        # Convolution kernel (moving average filter)
+    elif filter_type == 'average':  # Written by Marco
         kernel = np.ones(window_size) / window_size
-        pad_width = window_size // 2 # Define padding size
+        pad_width = window_size // 2  
 
         # Apply padding
         padded_data = np.pad(arr[channel][1:], (pad_width, pad_width), mode='reflect')
@@ -103,11 +111,11 @@ def apply_filter():
         # Convolve
         filtered_data = np.convolve(padded_data, kernel, mode='valid')
 
-        arr[channel] = filtered_data
+        arr[channel] = filtered_data[:arr.shape[1]]  # Ensure shape consistency
 
     np.save(file_path, arr)
-
     return redirect(url_for('visualize', file_paths=[file_path]))
+
 
 if __name__ == '__main__':
     app.run(debug=True)
