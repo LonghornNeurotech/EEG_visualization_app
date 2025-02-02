@@ -15,9 +15,19 @@
 
             const toggleInputs = () => {
                 const selectedFilter = filterSelect.value;
-                lowCutSection.style.display = selectedFilter === 'bandpass' ? 'block' : 'none';
-                highCutSection.style.display = selectedFilter === 'bandpass' ? 'block' : 'none';
-                windowSizeSection.style.display = selectedFilter === 'average' ? 'block' : 'none';
+                if (selectedFilter === 'bandpass' || selectedFilter === 'fft') {
+                    lowCutSection.style.display = 'block';
+                    highCutSection.style.display = 'block';
+                } else {
+                    lowCutSection.style.display = 'none';
+                    highCutSection.style.display = 'none';
+                }
+                if (selectedFilter === 'average') {
+                    windowSizeSection.style.display = 'block';
+                } else {
+                    windowSizeSection.style.display = 'none'
+                }
+
             };
 
             filterSelect.addEventListener('change', toggleInputs);

@@ -4,6 +4,7 @@ document.getElementById('filter').addEventListener('change', function () {
     
     switch (this.value) {
         case 'bandpass':
+        case 'FFT':
             filterParameters.innerHTML = `
                 <label for="low_cut">Low Cut Frequency:</label>
                 <input type="range" id="low_cut" name="low_cut" min="0" max="100">
@@ -32,7 +33,7 @@ function applyFilter() {
         channel
     };
 
-    if (filter === 'bandpass') {
+    if (filter === 'bandpass' || filter === 'FFT') {
         data.low_cut = document.getElementById('low_cut').value;
         data.high_cut = document.getElementById('high_cut').value;
     }

@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import os
 import base64
 import io
+from scipy import fft, ifft
 from io import BytesIO
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from scipy.signal import butter, filtfilt
@@ -14,6 +15,39 @@ app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def fft_filter(data, fs, lowcut=None, highcut=None):
+    """
+    Apply an FFT-based filter (low-pass, high-pass, or band-pass).
+    
+    Parameters:
+    - data: The EEG signal (1D array) to be filtered
+    - fs: The sampling frequency of the signal
+    - lowcut: The lower cutoff frequency for the filter (None for no low-pass filtering)
+    - highcut: The upper cutoff frequency for the filter (None for no high-pass filtering)
+    
+    Returns:
+    - filtered_data: The filtered signal after applying the FFT filter
+    """
+    # Perform FFT on the signal
+    N = len(data)
+    fft_data = fft(data)
+    
+    # Frequency axis
+    freqs = np.fft.fftfreq(N, 1/fs)
+    
+    # Apply low-pass filter (zero out frequencies above highcut)
+    if highcut:
+        fft_data[np.abs(freqs) > highcut] = 0
+    
+    # Apply high-pass filter (zero out frequencies below lowcut)
+    if lowcut:
+        fft_data[np.abs(freqs) < lowcut] = 0
+    
+    # Perform inverse FFT to get the filtered signal in the time domain
+    filtered_data = np.real(ifft(fft_data))
+    
+    return filtered_data
 
 @app.route('/')
 def index():
@@ -75,8 +109,6 @@ def apply_filter():
         high_cut = float(request.form['high_cut'])
         b, a = butter(4, [low_cut, high_cut], btype='band', fs=1000)
 
-        
-
         # Ensure all channels have the same length
         arr = arr[:, 1:]  # Remove the first column from ALL channels
         # Apply filter to the entire signal
@@ -84,6 +116,12 @@ def apply_filter():
 
         # Assign the filtered signal (minus the first value)
         arr[channel] = filtered_signal
+    elif filter_type == 'fft':
+        low_cut = float(request.form['low_cut'])
+        high_cut = float(request.form['high_cut'])
+        fs = 1000  # Assuming a fixed sampling frequency of 1000 Hz, adjust as necessary
+        arr[channel] = fft_filter(arr[channel], fs, lowcut=low_cut, highcut=high_cut)
+
 
     elif filter_type == 'zscore':  # Written by Sarah
         channel_data = arr[channel]
