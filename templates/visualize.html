@@ -46,8 +46,28 @@
         </form>
     </div>
 
+    <div>
+        <h2>Apply Animation</h2>
+        <form id="animationForm">
+            <script>
+                function updateValue(id, value) {
+                    document.getElementById(id).textContent = value;
+                }
+            </script>
+
+            <label for="animationChannel">Channel Index (0-based):</label>
+            <input type="number" id="animationChannel" name="channel" min="0"><br><br>
+
+            <button type="submit">Apply Animation</button>
+        </form>
+    </div>
+
     <div id="newPlot">
         <!-- The new plot will be inserted here after applying the filter -->
+    </div>
+
+    <div id="animatedPlot">
+        <!-- Animating the plot -->
     </div>
 </body>
 </html>

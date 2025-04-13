@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template, redirect, url_for
 import numpy as np
 import os
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 from werkzeug.utils import secure_filename
 import scipy
 
@@ -133,6 +134,63 @@ def apply_filter():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/apply_animation', methods=['POST'])
+def apply_animation():
+    data = request.json
+    print(f"Received data: {data}")
+    filename = data.get('filepath')
+    channel_index = data.get('channel')
+
+    if not filename:
+        return jsonify({'error': 'Filename not provided'}), 400
+
+    try:
+        # Construct the full file path for the original data
+        full_filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        print(f"Full file path: {full_filepath}")
+
+        # Load the original EEG data from the file
+        eeg_data = np.load(full_filepath)
+
+        if channel_index < 0 or channel_index >= eeg_data.shape[0]:
+            return jsonify({'error': 'Invalid channel index'}), 400
+
+        eeg_channel_data = eeg_data[channel_index][1:]
+
+        # Skip filtering. TODO: Restructure later
+        filtered_data = eeg_channel_data[::]
+        frame_len = len(filtered_data)
+
+        # Generate the new plot for the filtered data
+        fig, ax = plt.subplots(figsize=(6, 2))  # Smaller size for the plot
+        line, = ax.plot([],[], label=f'Filtered Channel {channel_index + 1}')
+        ax.set_title(f"EEG Data - Channel {channel_index + 1}")
+        ax.set_xlabel("Time")
+        ax.set_ylabel("Amplitude")
+        ax.legend(loc="upper right")
+        ax.set_xlim(0, frame_len)
+        ax.set_ylim(np.min(filtered_data), np.max(filtered_data))
+
+        plot_filename = f'channel_{channel_index + 1}_animation_plot.gif'
+        plot_filepath = os.path.join("./static/uploads/", plot_filename)
+        
+
+        def animate(i):
+            x = np.arange(0, i + 1)
+            y = filtered_data[:i + 1]
+            line.set_data(x,y)
+            return line
+
+        ani = animation.FuncAnimation(fig, animate, frames=range(0, frame_len))
+        ani.save(plot_filepath, writer=animation.PillowWriter(150))
+        plt.close(fig)
+
+        return jsonify({'new_plot_url': url_for('static', filename=f'uploads/{plot_filename}')})
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
 
 
 if __name__ == "__main__":
