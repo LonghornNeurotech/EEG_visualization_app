@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EEG Data Visualization</title>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}" defer>
+        const plotPaths = "{{ plot_paths }}"
+    </script>
+</head>
+<body>
+    <h1>EEG Data Visualization</h1>
+
+    <div id="plotPaths">
+        {% for plot_path in plot_paths %}
+        <div id="{{ plot_path }}"></div>
+        {% endfor %}
+    </div>
+
+    <div id="currentPlot">
+        <img src="{{ plot_paths[0] }}" alt="EEG Channel Plot" style="max-width: 500px; max-height: 300px; margin-bottom: 10px;">
+    </div>
+
+    <div>
+        <h2>Apply Filter</h2>
+        <form id="filterForm">
+            <label for="filterType">Filter Type:</label>
+            <select id="filterType">
+                <option value="bandpass">Bandpass</option>
+                <option value="fft">FFT</option>
+                <option value="average">Average</option>
+            </select><br><br>
+
+            <label for="lowcut">Low Cut Frequency:</label>
+            <input type="range" id="lowcut" name="lowcut" min="1" max="50" step="1" value="0" oninput="updateValue('lowcutValue', this.value)">
+            <span id="lowcutValue">1</span> Hz<br><br>
+
+            <label for="highcut">High Cut Frequency:</label>
+            <input type="range" id="highcut" name="highcut" min="2" max="100  " step="1" value="100" oninput="updateValue('highcutValue', this.value)">
+            <span id="highcutValue">100</span> Hz<br><br>
+
+            <script>
+                function updateValue(id, value) {
+                    document.getElementById(id).textContent = value;
+                }
+            </script>
+
+            <label for="channel">Channel Index (0-based):</label>
+            <input type="number" id="channel" name="channel" min="0" value="0"><br><br>
+
+            <button type="submit">Apply Filter</button>
+        </form>
+    </div>
+
+    <div id="newPlot">
+        <!-- The new plot will be inserted here after applying the filter -->
+    </div>
+</body>
+</html>

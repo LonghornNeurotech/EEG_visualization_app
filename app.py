@@ -54,8 +54,9 @@ def visualize():
         np.save(os.path.join(app.config['UPLOAD_FOLDER'], f'original_{filename}'), eeg_data)
 
         # Generate individual plots for each channel
+        num_plots = eeg_data.shape[0]
         plot_paths = []
-        for i in range(eeg_data.shape[0]):
+        for i in range(num_plots):
             fig, ax = plt.subplots(figsize=(6, 2))  # Smaller size for the plot
             ax.plot(eeg_data[i], label=f'Channel {i+1}')
             ax.set_title(f"EEG Data - Channel {i+1}")
@@ -69,7 +70,7 @@ def visualize():
             plt.close(fig)
             plot_paths.append(url_for('static', filename=f'uploads/{plot_filename}'))
 
-        return render_template('visualize.html', plot_paths=plot_paths)
+        return render_template('new_visualize.html', plot_paths=plot_paths, num_plots=num_plots)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -184,14 +185,13 @@ def apply_animation():
 
         ani = animation.FuncAnimation(fig, animate, frames=range(0, frame_len))
         ani.save(plot_filepath, writer=animation.PillowWriter(150))
-        plt.close(fig)
+        plt.close(fig)  
 
         return jsonify({'new_plot_url': url_for('static', filename=f'uploads/{plot_filename}')})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     
-
 
 if __name__ == "__main__":
     app.run(debug=True)
